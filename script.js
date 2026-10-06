@@ -18,7 +18,6 @@ let musicOn = true;
 let celebrated = false;
 let micStream;
 let analyserFrame;
-let holdTimer;
 
 const melody = [
   ['G4',.22],['G4',.22],['A4',.45],['G4',.45],['C5',.45],['B4',.8],
@@ -109,23 +108,11 @@ async function listenForBlow(){
 
 blowButton.addEventListener('click', listenForBlow);
 
-function startHold(event){
-  event.preventDefault();
-  if(celebrated) return;
-  holdButton.classList.add('holding');
-  holdTimer = setTimeout(celebrate, 1250);
-}
-function cancelHold(){ clearTimeout(holdTimer); holdButton.classList.remove('holding'); }
-['pointerdown','keydown'].forEach(type => holdButton.addEventListener(type, event => {
-  if(type === 'keydown' && ![' ','Enter'].includes(event.key)) return;
-  startHold(event);
-}));
-['pointerup','pointerleave','pointercancel','keyup'].forEach(type => holdButton.addEventListener(type, cancelHold));
+holdButton.addEventListener('click', celebrate);
 
 function celebrate(){
   if(celebrated) return;
   celebrated = true;
-  cancelHold();
   cancelAnimationFrame(analyserFrame);
   micStream?.getTracks().forEach(track => track.stop());
   cakeStage.classList.add('blown');
@@ -134,7 +121,27 @@ function celebrate(){
   setTimeout(() => { message.hidden = false; message.scrollIntoView({behavior:'smooth',block:'center'}); }, 420);
   launchConfetti();
   launchBalloons();
+  playApplause();
   victoryChime();
+}
+
+function playApplause(){
+  ensureAudio();
+  const start = audioContext.currentTime;
+  for(let i=0;i<38;i++){
+    const length = Math.floor(audioContext.sampleRate * (.045 + Math.random()*.04));
+    const buffer = audioContext.createBuffer(1,length,audioContext.sampleRate);
+    const channel = buffer.getChannelData(0);
+    for(let j=0;j<length;j++) channel[j]=(Math.random()*2-1)*Math.pow(1-j/length,2);
+    const source = audioContext.createBufferSource();
+    const filter = audioContext.createBiquadFilter();
+    const gain = audioContext.createGain();
+    filter.type='bandpass'; filter.frequency.value=1100+Math.random()*1400; filter.Q.value=.7;
+    const time=start+i*.055+Math.random()*.12;
+    gain.gain.setValueAtTime(.035+Math.random()*.035,time);
+    gain.gain.exponentialRampToValueAtTime(.001,time+.09);
+    source.buffer=buffer; source.connect(filter).connect(gain).connect(audioContext.destination); source.start(time);
+  }
 }
 
 function victoryChime(){

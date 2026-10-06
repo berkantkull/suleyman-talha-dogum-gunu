@@ -6,8 +6,9 @@ Süleyman Talha Duman için hazırlanan etkileşimli doğum günü sitesi.
 
 - Beş yanan mumlu özel 8-bit pasta
 - Mikrofonla üfleme algılama
-- Mikrofon kullanmak istemeyenler için basılı tutma seçeneği
+- Mikrofon kullanmak istemeyenler için ekrana dokunma seçeneği
 - Mumlar söndüğünde konfeti ve uçan, tıklanabilir balonlar
+- Mumlar söndüğünde alkış sesi ve Berkant Kul imzalı kişisel tebrik mesajı
 - Web Audio API ile çalınan 8-bit doğum günü melodisi
 - Mobil ve masaüstü uyumlu tasarım
 
