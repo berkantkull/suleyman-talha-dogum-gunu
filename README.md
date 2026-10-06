@@ -2,6 +2,8 @@
 
 Süleyman Talha Duman için hazırlanan etkileşimli doğum günü sitesi.
 
+Canlı site: https://berkantkull.github.io/suleyman-talha-dogum-gunu/
+
 ## Özellikler
 
 - Beş yanan mumlu özel 8-bit pasta
@@ -11,5 +13,3 @@ Süleyman Talha Duman için hazırlanan etkileşimli doğum günü sitesi.
 - Mumlar söndüğünde alkış sesi ve Berkant Kul imzalı kişisel tebrik mesajı
 - Web Audio API ile çalınan 8-bit doğum günü melodisi
 - Mobil ve masaüstü uyumlu tasarım
-
-Sitedeki pasta görseli OpenAI ImageGen ile bu proje için özel olarak üretilmiştir.
