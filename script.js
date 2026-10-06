@@ -113,12 +113,13 @@ holdButton.addEventListener('click', celebrate);
 function celebrate(){
   if(celebrated) return;
   celebrated = true;
+  document.body.classList.add('celebrated');
   cancelAnimationFrame(analyserFrame);
   micStream?.getTracks().forEach(track => track.stop());
   cakeStage.classList.add('blown');
   wishPanel.hidden = true;
   $('#instruction').textContent = 'Dileğin kabul olsun!';
-  setTimeout(() => { message.hidden = false; message.scrollIntoView({behavior:'smooth',block:'center'}); }, 420);
+  setTimeout(() => { message.hidden = false; if(innerWidth < 900) message.scrollIntoView({behavior:'smooth',block:'center'}); }, 420);
   launchConfetti();
   launchBalloons();
   playApplause();
@@ -152,6 +153,7 @@ function victoryChime(){
 
 $('#againButton').addEventListener('click', () => {
   celebrated = false;
+  document.body.classList.remove('celebrated');
   cakeStage.classList.remove('blown');
   message.hidden = true;
   wishPanel.hidden = false;
