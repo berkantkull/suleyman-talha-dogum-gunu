@@ -17,6 +17,7 @@ let musicTimer;
 let musicOn = true;
 let celebrated = false;
 let micStream;
+let micSource;
 let analyserFrame;
 
 const melody = [
@@ -76,15 +77,19 @@ soundToggle.addEventListener('click', () => {
 async function listenForBlow(){
   if(celebrated) return;
   try{
-    ensureAudio();
+    stopMusic();
+    if(audioContext && audioContext.state !== 'closed') await audioContext.close();
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    audioContext.resume();
+    soundToggle.disabled = true;
     micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     micPanel.hidden = false;
     blowButton.disabled = true;
     blowButton.textContent = 'DİNLİYORUM…';
-    const source = audioContext.createMediaStreamSource(micStream);
+    micSource = audioContext.createMediaStreamSource(micStream);
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 1024;
-    source.connect(analyser);
+    micSource.connect(analyser);
     const data = new Uint8Array(analyser.fftSize);
     let strongFrames = 0;
     const sample = () => {
@@ -99,10 +104,12 @@ async function listenForBlow(){
     };
     sample();
   }catch(error){
+    stopMicCapture();
     micPanel.hidden = false;
-    micStatus.textContent = 'Mikrofon açılamadı. Aşağıdaki düğmeye basılı tutabilirsin.';
+    micStatus.textContent = 'Mikrofon açılamadı. Aşağıdaki düğmeye dokunabilirsin.';
     blowButton.disabled = false;
     blowButton.textContent = 'MİKROFONU TEKRAR DENE';
+    if(musicOn) restartSpeakerAudio(false);
   }
 }
 
@@ -110,20 +117,37 @@ blowButton.addEventListener('click', listenForBlow);
 
 holdButton.addEventListener('click', celebrate);
 
+function stopMicCapture(){
+  cancelAnimationFrame(analyserFrame);
+  micSource?.disconnect();
+  micSource = null;
+  micStream?.getTracks().forEach(track => track.stop());
+  micStream = null;
+  soundToggle.disabled = false;
+}
+
+async function restartSpeakerAudio(withCelebration=true){
+  try{ if(audioContext && audioContext.state !== 'closed') await audioContext.close(); }catch(error){}
+  audioContext = null;
+  await new Promise(resolve => setTimeout(resolve,250));
+  ensureAudio();
+  if(withCelebration){ playApplause(); victoryChime(); }
+  if(musicOn){ clearTimeout(musicTimer); musicTimer=setTimeout(playMelody,withCelebration?2600:100); }
+}
+
 function celebrate(){
   if(celebrated) return;
   celebrated = true;
   document.body.classList.add('celebrated');
-  cancelAnimationFrame(analyserFrame);
-  micStream?.getTracks().forEach(track => track.stop());
+  const usedMicrophone = Boolean(micStream);
+  stopMicCapture();
   cakeStage.classList.add('blown');
   wishPanel.hidden = true;
   $('#instruction').textContent = 'Dileğin kabul olsun!';
-  setTimeout(() => { message.hidden = false; if(innerWidth < 900) message.scrollIntoView({behavior:'smooth',block:'center'}); }, 420);
+  setTimeout(() => { message.hidden = false; if(innerWidth < 900) window.scrollTo({top:0,behavior:'smooth'}); }, 420);
   launchConfetti();
   launchBalloons();
-  playApplause();
-  victoryChime();
+  if(usedMicrophone) restartSpeakerAudio(true); else { playApplause(); victoryChime(); }
 }
 
 function playApplause(){
